@@ -25,7 +25,8 @@ DARK_GRAY = (51, 51, 51)
 DARK_BLUE = (10, 31, 68)
 
 LETTER_SEQUENCE = "EID MUBARAK"
-ALL_LETTER = "EEEEEEEIIIIIIIDDDDMMMMMUUUUBBBAAARRRAAKKKKKFSDOHAFUDSIOHFOISDAFSIOFHSDOFHSDIOAFHODWAFHOSD                                  "
+# ALL_LETTER = "EEEEEEEIIIIIIIDDDDMMMMMUUUUBBBAAARRRAAKKKKKFSDOHAFUDSIOHFOISDAFSIOFHSDOFHSDIOAFHODWAFHOSD                                  "
+ALL_LETTER = "EIDMUBARAKEIDMUBARAK  "
 collected = ""
 
 clock = pygame.time.Clock()
@@ -124,6 +125,12 @@ spaceship_group.add(spaceship)
 
 def create_falling_letter():
     letter = random.choice(ALL_LETTER)
+
+    i = len(collected)
+    letterC= LETTER_SEQUENCE[i]
+    prob = random.randint(1,100)
+    if prob >  65 : letter = letterC
+
     x = random.randint(50, SCREEN_WIDTH - 50)
     falling_letter = FallingLetter(x, LETTER_FALL_START_Y, letter)
     falling_letters.add(falling_letter)
