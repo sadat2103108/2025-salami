@@ -31,7 +31,7 @@ collected = ""
 
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Spaceship Letter Collector")
+pygame.display.set_caption("UwU Games")
 font = pygame.font.SysFont("Arial", 30)
 
 def check_game_exit():
@@ -47,7 +47,7 @@ def check_game_exit():
 class Spaceship(Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load("image/spaceship.bmp")
+        self.image = pygame.image.load("spaceship.bmp")
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.last_shot = pygame.time.get_ticks()
