@@ -64,7 +64,6 @@ class Spaceship(Sprite):
             bulletGroup.add(bullet)
             self.lastShot = timeNow
             
-
 class Bullet(Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -77,26 +76,26 @@ class Bullet(Sprite):
         self.rect.y -= BULLET_SPEED
         if self.rect.bottom < 0:
             self.kill()
-        
-        hit_letters = spritecollide(self, letterGroup, True)
-        if hit_letters:
+            
+        if spritecollide(self, letterGroup, True):
+            #argument True means, kill letter as well
             self.kill()
 
 class FallingLetter(Sprite):
     def __init__(self, x, y, letter):
         super().__init__()
         self.letter = letter
-        letter_surface = font.render(self.letter, True, YELLOW)
+        letterSurface = font.render(self.letter, True, YELLOW)
         
-        box_width = letter_surface.get_width() + 20
-        box_height = letter_surface.get_height() + 20
+        box_width = letterSurface.get_width() + 20
+        box_height = letterSurface.get_height() + 20
         self.image = pygame.Surface((box_width, box_height))
         self.image.fill(DARK_GRAY)
         pygame.draw.rect(self.image, WHITE, (0, 0, box_width, box_height), 2)
         
-        text_x = (box_width - letter_surface.get_width()) // 2
-        text_y = (box_height - letter_surface.get_height()) // 2
-        self.image.blit(letter_surface, (text_x, text_y))
+        text_x = (box_width - letterSurface.get_width()) // 2
+        text_y = (box_height - letterSurface.get_height()) // 2
+        self.image.blit(letterSurface, (text_x, text_y))
         
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
@@ -104,21 +103,21 @@ class FallingLetter(Sprite):
     def update(self):
         self.rect.y += FALLING_SPEED
         if self.rect.top > SCREEN_HEIGHT:
-            game_over()
+            gameOver()
 
 
 ############FUNCTIONS-----------------------
-def game_over():
+def gameOver():
     print("Game Over!")
     pygame.quit()
     sys.exit()
 
-def win_game():
+def gameWin():
     print("You won! You completed 'EID MUBARAK'.")
     pygame.quit()
     sys.exit()
 
-def check_game_exit():
+def checkExit():
     key = pygame.key.get_pressed()
     if key[K_ESCAPE]:
         pygame.quit()
@@ -134,7 +133,7 @@ bulletGroup = Group()
 letterGroup = Group()
 ship = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT - BOTTOM_PADDING)
 
-def create_falling_letter():
+def createLetter():
     letter = random.choice(ALL_LETTERS)
 
     i = len(COLLECTED)
@@ -151,10 +150,10 @@ while True:
     screen.fill(DARK_BLUE)
     clock.tick(FPS)
     
-    check_game_exit()
+    checkExit()
     
     if random.randint(1, LETTER_SPAWN_CHANCE) == 1:
-        create_falling_letter()
+        createLetter()
     
     ship.update()
     bulletGroup.update()
@@ -167,10 +166,10 @@ while True:
 
             if not LETTER_SEQUENCE.startswith(COLLECTED):
                 print("Wrong character....")
-                game_over()
+                gameOver()
 
             if COLLECTED == LETTER_SEQUENCE:
-                win_game()
+                gameWin()
     
 
     screen.blit(ship.image, ship.rect)
