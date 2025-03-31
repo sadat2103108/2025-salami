@@ -6,18 +6,18 @@ from pygame.sprite import Sprite, Group, spritecollide
 
 
 #GLOBAL-VARIABLES----------------------------
-
+FPS = 60
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-FPS = 60
+SIDE_PADDING = 50
+BOTTOM_PADDING = 70
+
 SPACESHIP_SPEED = 5
 BULLET_SPEED = 5
-FALLING_SPEED = 1
 BULLET_COOLDOWN = 100
-BOTTOM_PADDING = 70
-SIDE_PADDING = 50
+FALL_SPEED = 1
+FALL_FROM = -50
 LETTER_SPAWN_CHANCE = 60
-FALL_OFFSET = -50
 
 CYAN = (0, 255, 255)
 YELLOW = (255, 215, 0)
@@ -29,6 +29,8 @@ LETTER_SEQUENCE = "EID MUBARAK"
 ALL_LETTERS = "EIDMUBARAKEIDMUBARAK  "
 COLLECTED = ""
 
+FONT_NAME = "Impact"
+FONT_SIZE = 30
 SPACESHIP_IMG= "spaceship.bmp"
 
 
@@ -37,7 +39,7 @@ SPACESHIP_IMG= "spaceship.bmp"
 pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-font = pygame.font.SysFont("Arial", 30)
+font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
 
 
 
@@ -87,21 +89,21 @@ class FallingLetter(Sprite):
         self.letter = letter
         letterSurface = font.render(self.letter, True, YELLOW)
         
-        box_width = letterSurface.get_width() + 20
-        box_height = letterSurface.get_height() + 20
-        self.image = pygame.Surface((box_width, box_height))
+        boxW = letterSurface.get_width() + 20
+        boxH = letterSurface.get_height() + 20
+        self.image = pygame.Surface((boxW, boxH))
         self.image.fill(DARK_GRAY)
-        pygame.draw.rect(self.image, WHITE, (0, 0, box_width, box_height), 2)
+        pygame.draw.rect(self.image, WHITE, (0, 0, boxW, boxH), 2)
         
-        text_x = (box_width - letterSurface.get_width()) // 2
-        text_y = (box_height - letterSurface.get_height()) // 2
-        self.image.blit(letterSurface, (text_x, text_y))
+        textX = (boxW - letterSurface.get_width()) // 2
+        textY = (boxH - letterSurface.get_height()) // 2
+        self.image.blit(letterSurface, (textX, textY))
         
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
 
     def update(self):
-        self.rect.y += FALLING_SPEED
+        self.rect.y += FALL_SPEED
         if self.rect.top > SCREEN_HEIGHT:
             gameOver()
 
@@ -127,12 +129,7 @@ def checkExit():
             pygame.quit()
             sys.exit()
 
-
-
-bulletGroup = Group()
-letterGroup = Group()
-ship = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT - BOTTOM_PADDING)
-
+ 
 def createLetter():
     letter = random.choice(ALL_LETTERS)
 
@@ -143,8 +140,21 @@ def createLetter():
     if prob >  65 : letter = letterNeed
 
     x = random.randint(SIDE_PADDING, SCREEN_WIDTH - SIDE_PADDING)
-    falling_letter = FallingLetter(x, FALL_OFFSET, letter)
+    falling_letter = FallingLetter(x, FALL_FROM, letter)
     letterGroup.add(falling_letter)
+
+
+
+
+##################
+######### MAIN --------------
+
+
+
+#making object, and group of objects
+ship = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT - BOTTOM_PADDING)
+bulletGroup = Group()
+letterGroup = Group()
 
 while True:
     screen.fill(DARK_BLUE)
@@ -159,10 +169,10 @@ while True:
     bulletGroup.update()
     letterGroup.update()
     
-    for letter in letterGroup.sprites():
+    for letterSprite in letterGroup.sprites():
         if spritecollide(ship, letterGroup, True):
-            COLLECTED += letter.letter
-            print(f"Collected Letter: {letter.letter}")
+            COLLECTED += letterSprite.letter
+            print(f"Collected Letter: {letterSprite.letter}")
 
             if not LETTER_SEQUENCE.startswith(COLLECTED):
                 print("Wrong character....")
@@ -176,13 +186,10 @@ while True:
     bulletGroup.draw(screen)
     letterGroup.draw(screen)
     
-
     #show current COLLECTED letters
     collectedSurface = font.render(f"Collected: {COLLECTED}", True, YELLOW)
     text_rect = collectedSurface.get_rect(center=(SCREEN_WIDTH // 2, 30))
     screen.blit(collectedSurface, text_rect)
 
-
-    
     pygame.display.flip()
 
