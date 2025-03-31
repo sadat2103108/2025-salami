@@ -1,22 +1,23 @@
 import sys
 import random
 import pygame
-from time import sleep
 from pygame.locals import *
 from pygame.sprite import Sprite, Group, spritecollide
 
-pygame.init()
+
+#GLOBAL-VARIABLES----------------------------
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 FPS = 60
-SPACESHIP_SPEED = 8
+SPACESHIP_SPEED = 5
 BULLET_SPEED = 5
 FALLING_SPEED = 1
 BULLET_COOLDOWN = 100
-SPACESHIP_Y_OFFSET = 70
+BOTTOM_PADDING = 70
+SIDE_PADDING = 50
 LETTER_SPAWN_CHANCE = 60
-LETTER_FALL_START_Y = -50
+FALL_OFFSET = -50
 
 CYAN = (0, 255, 255)
 YELLOW = (255, 215, 0)
@@ -25,32 +26,30 @@ DARK_GRAY = (51, 51, 51)
 DARK_BLUE = (10, 31, 68)
 
 LETTER_SEQUENCE = "EID MUBARAK"
-# ALL_LETTER = "EEEEEEEIIIIIIIDDDDMMMMMUUUUBBBAAARRRAAKKKKKFSDOHAFUDSIOHFOISDAFSIOFHSDOFHSDIOAFHODWAFHOSD                                  "
-ALL_LETTER = "EIDMUBARAKEIDMUBARAK  "
-collected = ""
+ALL_LETTERS = "EIDMUBARAKEIDMUBARAK  "
+COLLECTED = ""
 
+SPACESHIP_IMG= "spaceship.bmp"
+
+
+####INIT-----------------------------------------------
+
+pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("UwU Games")
 font = pygame.font.SysFont("Arial", 30)
 
-def check_game_exit():
-    key = pygame.key.get_pressed()
-    if key[K_ESCAPE]:
-        pygame.quit()
-        sys.exit()
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+
+
+####CLASSES----------------------------------------------
 
 class Spaceship(Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.image.load("spaceship.bmp")
+        self.image = pygame.image.load(SPACESHIP_IMG)
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
-        self.last_shot = pygame.time.get_ticks()
+        self.lastShot = pygame.time.get_ticks()
 
     def update(self):
         key = pygame.key.get_pressed()
@@ -59,11 +58,12 @@ class Spaceship(Sprite):
         if key[K_RIGHT] and self.rect.right < SCREEN_WIDTH:
             self.rect.x += SPACESHIP_SPEED
         
-        time_now = pygame.time.get_ticks()
-        if key[K_SPACE] and (time_now - self.last_shot) > BULLET_COOLDOWN:
+        timeNow = pygame.time.get_ticks()
+        if key[K_SPACE] and (timeNow - self.lastShot) > BULLET_COOLDOWN:
             bullet = Bullet(self.rect.centerx, self.rect.top)
-            bullet_group.add(bullet)
-            self.last_shot = time_now
+            bulletGroup.add(bullet)
+            self.lastShot = timeNow
+            
 
 class Bullet(Sprite):
     def __init__(self, x, y):
@@ -78,7 +78,7 @@ class Bullet(Sprite):
         if self.rect.bottom < 0:
             self.kill()
         
-        hit_letters = spritecollide(self, falling_letters, True)
+        hit_letters = spritecollide(self, letterGroup, True)
         if hit_letters:
             self.kill()
 
@@ -106,6 +106,8 @@ class FallingLetter(Sprite):
         if self.rect.top > SCREEN_HEIGHT:
             game_over()
 
+
+############FUNCTIONS-----------------------
 def game_over():
     print("Game Over!")
     pygame.quit()
@@ -116,24 +118,34 @@ def win_game():
     pygame.quit()
     sys.exit()
 
-spaceship_group = Group()
-bullet_group = Group()
-falling_letters = Group()
+def check_game_exit():
+    key = pygame.key.get_pressed()
+    if key[K_ESCAPE]:
+        pygame.quit()
+        sys.exit()
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
 
-spaceship = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT - SPACESHIP_Y_OFFSET)
-spaceship_group.add(spaceship)
+
+
+bulletGroup = Group()
+letterGroup = Group()
+ship = Spaceship(SCREEN_WIDTH // 2, SCREEN_HEIGHT - BOTTOM_PADDING)
 
 def create_falling_letter():
-    letter = random.choice(ALL_LETTER)
+    letter = random.choice(ALL_LETTERS)
 
-    i = len(collected)
-    letterC= LETTER_SEQUENCE[i]
+    i = len(COLLECTED)
+    letterNeed= LETTER_SEQUENCE[i]
+    
     prob = random.randint(1,100)
-    if prob >  65 : letter = letterC
+    if prob >  65 : letter = letterNeed
 
-    x = random.randint(50, SCREEN_WIDTH - 50)
-    falling_letter = FallingLetter(x, LETTER_FALL_START_Y, letter)
-    falling_letters.add(falling_letter)
+    x = random.randint(SIDE_PADDING, SCREEN_WIDTH - SIDE_PADDING)
+    falling_letter = FallingLetter(x, FALL_OFFSET, letter)
+    letterGroup.add(falling_letter)
 
 while True:
     screen.fill(DARK_BLUE)
@@ -144,31 +156,34 @@ while True:
     if random.randint(1, LETTER_SPAWN_CHANCE) == 1:
         create_falling_letter()
     
-    spaceship.update()
-    bullet_group.update()
-    falling_letters.update()
+    ship.update()
+    bulletGroup.update()
+    letterGroup.update()
     
-    for letter in falling_letters.sprites():
-        if spritecollide(spaceship, falling_letters, True):
-            collected += letter.letter
+    for letter in letterGroup.sprites():
+        if spritecollide(ship, letterGroup, True):
+            COLLECTED += letter.letter
             print(f"Collected Letter: {letter.letter}")
 
-            if not LETTER_SEQUENCE.startswith(collected):
+            if not LETTER_SEQUENCE.startswith(COLLECTED):
                 print("Wrong character....")
                 game_over()
 
-            if collected == LETTER_SEQUENCE:
+            if COLLECTED == LETTER_SEQUENCE:
                 win_game()
     
-    spaceship_group.draw(screen)
-    bullet_group.draw(screen)
-    falling_letters.draw(screen)
+
+    screen.blit(ship.image, ship.rect)
+    bulletGroup.draw(screen)
+    letterGroup.draw(screen)
     
-    collected_surface = font.render(f"Collected: {collected}", True, YELLOW)
-    text_rect = collected_surface.get_rect(center=(SCREEN_WIDTH // 2, 30))
-    screen.blit(collected_surface, text_rect)
+
+    #show current COLLECTED letters
+    collectedSurface = font.render(f"Collected: {COLLECTED}", True, YELLOW)
+    text_rect = collectedSurface.get_rect(center=(SCREEN_WIDTH // 2, 30))
+    screen.blit(collectedSurface, text_rect)
+
+
     
     pygame.display.flip()
 
-pygame.quit()
-sys.exit()
